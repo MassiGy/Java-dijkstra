@@ -1,5 +1,6 @@
 package org.example;
 
+import org.graphstream.algorithm.Dijkstra;
 import org.graphstream.algorithm.generator.BaseGenerator;
 import org.graphstream.algorithm.generator.Generator;
 import org.graphstream.algorithm.generator.RandomGenerator;
@@ -19,12 +20,12 @@ import java.util.PriorityQueue;
 
 public class Main {
 
-
+    private static final int maxWeight = 100;
     public static Graph randomGen(int nodeCount, double averageDegree) {
         Graph graph = new SingleGraph("Random");
         Generator gen = new RandomGenerator((int) Math.round(averageDegree));
         gen.addSink(graph);
-        ((BaseGenerator) gen).addEdgeAttribute("weight", 0, 100);
+        ((BaseGenerator) gen).addEdgeAttribute("weight", 0, maxWeight);
 
         gen.begin();
 
@@ -37,7 +38,7 @@ public class Main {
     }
 
 
-    public static void Dijkstra(Graph graph, Node src) {
+    public static void dijkstra(Graph graph, Node src) {
 
         HashMap<Node, Double> dists = new HashMap<>();
         HashMap<Node, Node> prevs = new HashMap<>();
@@ -71,12 +72,13 @@ public class Main {
                     priorityQueue.add(v);
                 }
             }
-
-
         }
 
-        System.out.println(dists);
-        System.out.println(prevs);
+        int max = graph.getEdgeCount() * maxWeight;
+        dists.forEach((k,v) -> {
+            System.out.printf("GRAPH: %s->%s:\t %s \n", src, k, v > max ? "infinity" : ""+v);
+        });
+
     }
 
 
@@ -106,10 +108,35 @@ public class Main {
 
 
     public static void main(String[] args) {
-        Graph graph = randomGen(4, 2);
+        Graph graph = randomGen(8, 2);
         displayGraph(graph);
+        System.out.println("---------------------------------");
+        System.out.println("Calling Our Custom Dijkstra Algo (naive version)");
+        System.out.println("---------------------------------");
+        dijkstra(graph, graph.getNode(0));
 
-      
+
+        System.out.println("---------------------------------");
+        System.out.println("Calling GraphStream Dijkstra Algo");
+        System.out.println("---------------------------------");
+
+        Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "weight");
+        dijkstra.setSource(graph.getNode(0));
+
+        dijkstra.init(graph);
+
+        dijkstra.compute();
+
+        /*
+        System.out.println(dijkstra.getPath(graph.getNode("8")));
+        System.out.println(dijkstra.getPathLength(graph.getNode("8")));
+        System.out.println(dijkstra.getTreeLength());
+         */
+
+
+        for (Node node : graph)
+            System.out.printf("GRAPH: %s->%s:%10.2f%n", dijkstra.getSource(), node,
+                    dijkstra.getPathLength(node));
 
     }
 }
