@@ -1,26 +1,20 @@
 package org.example;
 
-import org.graphstream.algorithm.Toolkit;
-import org.graphstream.algorithm.generator.BarabasiAlbertGenerator;
 import org.graphstream.algorithm.generator.BaseGenerator;
 import org.graphstream.algorithm.generator.Generator;
 import org.graphstream.algorithm.generator.RandomGenerator;
-import org.graphstream.graph.BreadthFirstIterator;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.DefaultGraph;
 import org.graphstream.graph.implementations.SingleGraph;
-import org.graphstream.stream.file.FileSource;
-import org.graphstream.stream.file.FileSourceDGS;
 import org.graphstream.stream.file.FileSourceEdge;
-import org.graphstream.stream.file.FileSourceFactory;
 import org.graphstream.ui.view.Viewer;
-import org.graphstream.algorithm.Toolkit;
 
-import java.awt.*;
 import java.io.IOException;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.PriorityQueue;
 
 
 public class Main {
@@ -30,7 +24,8 @@ public class Main {
         Graph graph = new SingleGraph("Random");
         Generator gen = new RandomGenerator((int) Math.round(averageDegree));
         gen.addSink(graph);
-        ((BaseGenerator)gen).addEdgeAttribute("weights", 0, 10000);
+        ((BaseGenerator) gen).addEdgeAttribute("weight", 0, 100);
+
         gen.begin();
 
         for (int i = 0; i < nodeCount; i++) {
@@ -40,32 +35,49 @@ public class Main {
         gen.end();
         return graph;
     }
-    /*
 
-     function Dijkstra(Graph, source):
- 2
- 3      for each vertex v in Graph.Vertices:
- 4          dist[v] ← INFINITY
- 5          prev[v] ← UNDEFINED
- 6          add v to Q
- 7      dist[source] ← 0
- 8
- 9      while Q is not empty:
-10          u ← vertex in Q with minimum dist[u]
-11          remove u from Q
-12
-13          for each neighbor v of u still in Q:
-14              alt ← dist[u] + Graph.Edges(u, v)
-15              if alt < dist[v]:
-16                  dist[v] ← alt
-17                  prev[v] ← u
-18
-19      return dist[], prev[]
 
- public static Dijkstra(Graph )
+    public static void Dijkstra(Graph graph, Node src) {
 
-     */
+        HashMap<Node, Double> dists = new HashMap<>();
+        HashMap<Node, Node> prevs = new HashMap<>();
 
+        graph.nodes().forEach(n -> {
+            dists.put(n, Double.MAX_VALUE);
+            prevs.put(n, null);
+        });
+        dists.put(src, 0.0);
+
+        PriorityQueue<Node> priorityQueue = new PriorityQueue<>(
+                Comparator.comparingDouble(n -> dists.get(n))
+        );
+        priorityQueue.add(src);
+
+
+        while (!priorityQueue.isEmpty()) {
+            Node currentNode = priorityQueue.poll();
+            List<Node> neighborNodes = currentNode.neighborNodes().toList();
+
+            for (Node v : neighborNodes) {
+                double d;
+
+                d = dists.get(currentNode) + (double) currentNode.getEdgeBetween(v).getAttribute("weight");
+                if (d < dists.get(v)) {
+                    dists.put(v, d);
+                    prevs.put(v, currentNode);
+
+                    // update v's priority with the new distance
+                    priorityQueue.remove(v);
+                    priorityQueue.add(v);
+                }
+            }
+
+
+        }
+
+        System.out.println(dists);
+        System.out.println(prevs);
+    }
 
 
     public static Graph graphFromFileSource(String absFilePath) {
@@ -86,17 +98,18 @@ public class Main {
 
     public static void displayGraph(Graph graph) {
         System.setProperty("org.graphstream.ui", "swing");
+        graph.edges().forEach(e -> e.setAttribute("ui.label", (""+ e.getAttribute("weight")).substring(0, 6)));
+        graph.nodes().forEach(n -> n.setAttribute("ui.label", "NodeId@"+n.getId()));
         Viewer viewer = graph.display();
         //viewer.disableAutoLayout();
     }
 
 
-
-    public static void main(String args[]) {
-        Graph graph = randomGen(10, 2.9);
+    public static void main(String[] args) {
+        Graph graph = randomGen(4, 2);
         displayGraph(graph);
 
-
+      
 
     }
 }
