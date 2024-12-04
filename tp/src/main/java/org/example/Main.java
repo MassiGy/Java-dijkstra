@@ -2,6 +2,7 @@ package org.example;
 
 import org.graphstream.algorithm.Toolkit;
 import org.graphstream.algorithm.generator.BarabasiAlbertGenerator;
+import org.graphstream.algorithm.generator.BaseGenerator;
 import org.graphstream.algorithm.generator.Generator;
 import org.graphstream.algorithm.generator.RandomGenerator;
 import org.graphstream.graph.BreadthFirstIterator;
@@ -29,6 +30,7 @@ public class Main {
         Graph graph = new SingleGraph("Random");
         Generator gen = new RandomGenerator((int) Math.round(averageDegree));
         gen.addSink(graph);
+        ((BaseGenerator)gen).addEdgeAttribute("weights", 0, 10000);
         gen.begin();
 
         for (int i = 0; i < nodeCount; i++) {
@@ -38,20 +40,33 @@ public class Main {
         gen.end();
         return graph;
     }
+    /*
 
-    public static Graph randomPreferencielGraph(int nodeCount, double averageDegree) {
-        Graph graph = new SingleGraph("Preferential");
-        Generator gen = new BarabasiAlbertGenerator((int) Math.round(averageDegree));
-        gen.addSink(graph);
-        gen.begin();
+     function Dijkstra(Graph, source):
+ 2
+ 3      for each vertex v in Graph.Vertices:
+ 4          dist[v] ← INFINITY
+ 5          prev[v] ← UNDEFINED
+ 6          add v to Q
+ 7      dist[source] ← 0
+ 8
+ 9      while Q is not empty:
+10          u ← vertex in Q with minimum dist[u]
+11          remove u from Q
+12
+13          for each neighbor v of u still in Q:
+14              alt ← dist[u] + Graph.Edges(u, v)
+15              if alt < dist[v]:
+16                  dist[v] ← alt
+17                  prev[v] ← u
+18
+19      return dist[], prev[]
 
-        for (int i = 0; i < nodeCount; i++) {
-            gen.nextEvents();
-        }
+ public static Dijkstra(Graph )
 
-        gen.end();
-        return graph;
-    }
+     */
+
+
 
     public static Graph graphFromFileSource(String absFilePath) {
         Graph graph = new DefaultGraph("g");
@@ -69,11 +84,17 @@ public class Main {
         return graph;
     }
 
+    public static void displayGraph(Graph graph) {
+        System.setProperty("org.graphstream.ui", "swing");
+        Viewer viewer = graph.display();
+        //viewer.disableAutoLayout();
+    }
+
 
 
     public static void main(String args[]) {
-
-
+        Graph graph = randomGen(10, 2.9);
+        displayGraph(graph);
 
 
 
