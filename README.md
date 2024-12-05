@@ -82,8 +82,6 @@ Chaque nœud du graphe est associé à une structure de données `Data`, qui con
 
 Cette structure de données est associée à chaque nœud dans l'attribut `resultAttribute` du nœud (une sorte de stockage des résultats pour chaque nœud).
 
-##### Boucle principale de l'algorithme
-
 3. **Boucle principale** :
 
 L'algorithme itère tant que le tas de Fibonacci n'est pas vide (`!heap.isEmpty()`). À chaque itération :
