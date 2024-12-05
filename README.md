@@ -1,5 +1,12 @@
 # Rapport d'Évaluation des Performances de l'Algorithme de Dijkstra
 
+---
+
+@Author: Massiles GHERNAOUT.
+@Subject: Dijkstra Algo.
+
+---
+
 ## Introduction
 
 L'algorithme de Dijkstra est l'un des algorithmes les plus utilisés pour résoudre le problème du plus court chemin dans un graphe pondéré. Ce rapport décrit l'implémentation et l'évaluation de cet algorithme en le comparant à une version existante fournie par la bibliothèque GraphStream. Nous avons réalisé des tests de performance pour analyser la différence entre ces deux implémentations, en mesurant le temps d'exécution en fonction de la taille du graphe.
