@@ -21,6 +21,22 @@ import java.util.PriorityQueue;
 public class Main {
 
     private static final int maxWeight = 100;
+
+    public static Graph graphFromFileSource(String absFilePath) {
+        Graph graph = new DefaultGraph("g");
+        FileSourceEdge fs = new FileSourceEdge();
+        fs.addSink(graph);
+
+
+        try {
+            fs.readAll(absFilePath);
+        } catch (IOException e) {
+        } finally {
+            fs.removeSink(graph);
+        }
+
+        return graph;
+    }
     public static Graph randomGen(int nodeCount, double averageDegree) {
         Graph graph = new SingleGraph("Random");
         Generator gen = new RandomGenerator((int) Math.round(averageDegree));
@@ -38,7 +54,7 @@ public class Main {
     }
 
 
-    public static void dijkstra(Graph graph, Node src) {
+    public static HashMap<String, HashMap<Node, ?>> dijkstra(Graph graph, Node src) {
 
         HashMap<Node, Double> dists = new HashMap<>();
         HashMap<Node, Node> prevs = new HashMap<>();
@@ -67,47 +83,31 @@ public class Main {
                     dists.put(v, d);
                     prevs.put(v, currentNode);
 
-                    // update v's priority with the new distance
+                    // update v's priority with the new distance ( this is not good )
                     priorityQueue.remove(v);
                     priorityQueue.add(v);
                 }
             }
         }
 
-        int max = graph.getEdgeCount() * maxWeight;
-        dists.forEach((k,v) -> {
-            System.out.printf("GRAPH: %s->%s:\t %s \n", src, k, v > max ? "infinity" : ""+v);
-        });
-
+        HashMap<String, HashMap<Node, ?>> res = new HashMap<>();
+        res.put("dists", dists);
+        res.put("prevs", prevs);
+        return res;
     }
 
 
-    public static Graph graphFromFileSource(String absFilePath) {
-        Graph graph = new DefaultGraph("g");
-        FileSourceEdge fs = new FileSourceEdge();
-        fs.addSink(graph);
 
-
-        try {
-            fs.readAll(absFilePath);
-        } catch (IOException e) {
-        } finally {
-            fs.removeSink(graph);
-        }
-
-        return graph;
-    }
 
     public static void displayGraph(Graph graph) {
         System.setProperty("org.graphstream.ui", "swing");
-        graph.edges().forEach(e -> e.setAttribute("ui.label", (""+ e.getAttribute("weight")).substring(0, 6)));
-        graph.nodes().forEach(n -> n.setAttribute("ui.label", "NodeId@"+n.getId()));
+        graph.edges().forEach(e -> e.setAttribute("ui.label", ("" + e.getAttribute("weight")).substring(0, 6)));
+        graph.nodes().forEach(n -> n.setAttribute("ui.label", "NodeId@" + n.getId()));
         Viewer viewer = graph.display();
         //viewer.disableAutoLayout();
     }
 
-
-    public static void main(String[] args) {
+    public static void simpleTest() {
         Graph graph = randomGen(8, 2);
         displayGraph(graph);
         System.out.println("---------------------------------");
@@ -127,16 +127,42 @@ public class Main {
 
         dijkstra.compute();
 
-        /*
-        System.out.println(dijkstra.getPath(graph.getNode("8")));
-        System.out.println(dijkstra.getPathLength(graph.getNode("8")));
-        System.out.println(dijkstra.getTreeLength());
-         */
-
-
         for (Node node : graph)
             System.out.printf("GRAPH: %s->%s:%10.2f%n", dijkstra.getSource(), node,
                     dijkstra.getPathLength(node));
+    }
 
+    public static void printResults(Graph graph, Node src, HashMap<Node, Double> dists) {
+        int max = graph.getEdgeCount() * maxWeight;
+        dists.forEach((k, v) -> {
+            System.out.printf("GRAPH: %s->%s:\t %s \n", src, k, v > max ? "infinity" : "" + v);
+        });
+    }
+
+
+    public static void testPerformance() {
+        Graph largeGraph = randomGen(1000, 5.0); // 1000 nodes with average degree of 5
+        Node sourceNode = largeGraph.getNode(0);
+
+        // Custom Dijkstra
+        long startTime = System.nanoTime();
+        dijkstra(largeGraph, sourceNode);
+        long customDijkstraDuration = System.nanoTime() - startTime;
+
+        // GraphStream Dijkstra
+        Dijkstra graphStreamDijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "weight");
+        graphStreamDijkstra.setSource(sourceNode);
+        graphStreamDijkstra.init(largeGraph);
+        startTime = System.nanoTime();
+        graphStreamDijkstra.compute();
+        long graphStreamDijkstraDuration = System.nanoTime() - startTime;
+
+        System.out.println("Custom Dijkstra time: " + customDijkstraDuration / 1_000_000 + " ms");
+        System.out.println("GraphStream Dijkstra time: " + graphStreamDijkstraDuration / 1_000_000 + " ms");
+    }
+
+
+    public static void main(String[] args) {
+        testPerformance();
     }
 }
