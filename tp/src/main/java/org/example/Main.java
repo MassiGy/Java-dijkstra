@@ -107,30 +107,6 @@ public class Main {
         //viewer.disableAutoLayout();
     }
 
-    public static void simpleTest() {
-        Graph graph = randomGen(8, 2);
-        displayGraph(graph);
-        System.out.println("---------------------------------");
-        System.out.println("Calling Our Custom Dijkstra Algo (naive version)");
-        System.out.println("---------------------------------");
-        dijkstra(graph, graph.getNode(0));
-
-
-        System.out.println("---------------------------------");
-        System.out.println("Calling GraphStream Dijkstra Algo");
-        System.out.println("---------------------------------");
-
-        Dijkstra dijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "weight");
-        dijkstra.setSource(graph.getNode(0));
-
-        dijkstra.init(graph);
-
-        dijkstra.compute();
-
-        for (Node node : graph)
-            System.out.printf("GRAPH: %s->%s:%10.2f%n", dijkstra.getSource(), node,
-                    dijkstra.getPathLength(node));
-    }
 
     public static void printResults(Graph graph, Node src, HashMap<Node, Double> dists) {
         int max = graph.getEdgeCount() * maxWeight;
@@ -138,28 +114,78 @@ public class Main {
             System.out.printf("GRAPH: %s->%s:\t %s \n", src, k, v > max ? "infinity" : "" + v);
         });
     }
+/*
+    public static void testPerformance() {
+        int startNodeCount = 100;   // Starting with 100 nodes
+        int increment = 1000;        // Incrementing by 100 nodes each time
+        int maxNodeCount = 200000;    // Maximum number of nodes for the performance test
+        double averageDegree = 5.0; // Average degree for the graph
 
+        for (int nodeCount = startNodeCount; nodeCount <= maxNodeCount; nodeCount += increment) {
+            System.out.println("Testing graph with " + nodeCount + " nodes...");
+
+            // Generate a random graph with `nodeCount` nodes and average degree `averageDegree`
+            Graph graph = randomGen(nodeCount, averageDegree);
+            Node sourceNode = graph.getNode(0);  // Use the first node as the source
+
+            // Custom Dijkstra
+            long startTime = System.nanoTime();
+            dijkstra(graph, sourceNode);
+            long customDijkstraDuration = System.nanoTime() - startTime;
+
+            // GraphStream Dijkstra
+            Dijkstra graphStreamDijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "weight");
+            graphStreamDijkstra.setSource(sourceNode);
+            graphStreamDijkstra.init(graph);
+            startTime = System.nanoTime();
+            graphStreamDijkstra.compute();
+            long graphStreamDijkstraDuration = System.nanoTime() - startTime;
+
+            // Print out the time taken for each algorithm
+            System.out.println("Custom Dijkstra time: " + customDijkstraDuration / 1_000_000 + " ms");
+            System.out.println("GraphStream Dijkstra time: " + graphStreamDijkstraDuration / 1_000_000 + " ms");
+            System.out.println("-------------------------------------------------");
+        }
+    }
+
+
+ */
 
     public static void testPerformance() {
-        Graph largeGraph = randomGen(1000, 5.0); // 1000 nodes with average degree of 5
-        Node sourceNode = largeGraph.getNode(0);
+        int startNodeCount = 100;   // Starting with 100 nodes
+        int increment = 1000;        // Incrementing by 100 nodes each time
+        int maxNodeCount = 200000;    // Maximum number of nodes for the performance test
+        double averageDegree = 5.0; // Average degree for the graph
 
-        // Custom Dijkstra
-        long startTime = System.nanoTime();
-        dijkstra(largeGraph, sourceNode);
-        long customDijkstraDuration = System.nanoTime() - startTime;
+        // Print the table header
+        System.out.printf("%-20s %-35s %-35s%n", "Nodes Count", "Custom Dijkstra Compute Time (ms)", "GraphStream Dijkstra Compute Time (ms)");
 
-        // GraphStream Dijkstra
-        Dijkstra graphStreamDijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "weight");
-        graphStreamDijkstra.setSource(sourceNode);
-        graphStreamDijkstra.init(largeGraph);
-        startTime = System.nanoTime();
-        graphStreamDijkstra.compute();
-        long graphStreamDijkstraDuration = System.nanoTime() - startTime;
+        // Loop through and test graphs with increasing size
+        for (int nodeCount = startNodeCount; nodeCount <= maxNodeCount; nodeCount += increment) {
+            System.out.printf("%-20d", nodeCount);  // Print node count
 
-        System.out.println("Custom Dijkstra time: " + customDijkstraDuration / 1_000_000 + " ms");
-        System.out.println("GraphStream Dijkstra time: " + graphStreamDijkstraDuration / 1_000_000 + " ms");
+            // Generate a random graph with `nodeCount` nodes and average degree `averageDegree`
+            Graph graph = randomGen(nodeCount, averageDegree);
+            Node sourceNode = graph.getNode(0);  // Use the first node as the source
+
+            // Custom Dijkstra
+            long startTime = System.nanoTime();
+            dijkstra(graph, sourceNode);
+            long customDijkstraDuration = System.nanoTime() - startTime;
+
+            // GraphStream Dijkstra
+            Dijkstra graphStreamDijkstra = new Dijkstra(Dijkstra.Element.EDGE, null, "weight");
+            graphStreamDijkstra.setSource(sourceNode);
+            graphStreamDijkstra.init(graph);
+            startTime = System.nanoTime();
+            graphStreamDijkstra.compute();
+            long graphStreamDijkstraDuration = System.nanoTime() - startTime;
+
+            // Print the time taken for each algorithm in milliseconds, formatted in columns
+            System.out.printf("%-35d %-35d%n", customDijkstraDuration / 1_000_000, graphStreamDijkstraDuration / 1_000_000);
+        }
     }
+
 
 
     public static void main(String[] args) {
